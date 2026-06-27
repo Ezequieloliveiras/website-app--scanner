@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="LogScan faz a entrada de estoque em segundos a partir da leitura de notas, reduzindo digitação manual e retrabalho no recebimento."
+    />
+    <title>LogScan | Entrada de estoque em segundos</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="#top" aria-label="LogScan inicio">
+        <span class="brand-mark" aria-hidden="true">
+          <img src="/assets/logscan-mark.svg" alt="" />
+        </span>
+        <span>LogScan</span>
+      </a>
+      <nav class="main-nav" aria-label="Principal">
+        <a href="#produto">Produto</a>
+        <a href="#planos">Planos</a>
+        <a href="#faq">FAQ</a>
+      </nav>
+      <button class="ghost-button compact" data-open-checkout="premium">Começar agora</button>
+    </header>
+
+    <main id="top">
+      <section class="hero" aria-labelledby="hero-title">
+        <img class="hero-image" src="/assets/logscan-hero-danfe.png" alt="" />
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+          <p class="eyebrow">LogScan</p>
+          <h1 id="hero-title">Entrada de estoque em segundos.</h1>
+          <p class="hero-copy">
+            O LogScan é um app para ler notas fiscais, montar a entrada automaticamente e atualizar seu estoque sem redigitar produto por produto.
+          </p>
+          <div class="hero-actions">
+            <button class="primary-button" data-open-checkout="premium">
+              Começar pelo Premium
+            </button>
+            <a class="secondary-link" href="#planos">Comparar planos</a>
+          </div>
+          <dl class="hero-metrics" aria-label="Destaques do LogScan">
+            <div>
+              <dt>Segundos</dt>
+              <dd>para registrar a entrada</dd>
+            </div>
+            <div>
+              <dt>NF-e/NFC-e</dt>
+              <dd>leitura por QR Code</dd>
+            </div>
+            <div>
+              <dt>Estoque</dt>
+              <dd>atualizado sem redigitar</dd>
+            </div>
+          </dl>
+        </div>
+      </section>
+
+      <section class="workflow-band" id="produto" aria-labelledby="produto-title">
+        <div class="product-intro">
+          <div>
+            <p class="eyebrow">O app LogScan</p>
+            <h2>Uma solução criada para transformar nota fiscal em estoque atualizado.</h2>
+          </div>
+          <p>
+            Com o LogScan, sua equipe usa o celular para escanear a nota, revisar os itens encontrados e concluir a entrada em poucos segundos. O recebimento fica mais rápido, padronizado e com menos erro manual.
+          </p>
+        </div>
+        <div class="section-heading">
+          <p class="eyebrow">Da nota ao estoque</p>
+          <h2 id="produto-title">Receber mercadoria não precisa travar sua operação.</h2>
+        </div>
+        <div class="workflow-grid">
+          <article>
+            <span class="step-icon" aria-hidden="true">01</span>
+            <h3>Escaneie a nota</h3>
+            <p>A nota vira uma pré-entrada com produtos, quantidades e valores prontos para conferência.</p>
+          </article>
+          <article>
+            <span class="step-icon" aria-hidden="true">02</span>
+            <h3>Revise em segundos</h3>
+            <p>Seu time corrige exceções, não perde tempo preenchendo tudo de novo.</p>
+          </article>
+          <article>
+            <span class="step-icon" aria-hidden="true">03</span>
+            <h3>Atualize o estoque</h3>
+            <p>Com a entrada confirmada, o estoque fica pronto para venda, transferência e acompanhamento.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="signal-band" aria-label="Indicadores de produto">
+        <div class="signal-panel">
+          <div>
+            <p class="eyebrow">Recebimento mais rápido</p>
+            <h2>Menos digitação no balcão. Mais estoque confiável.</h2>
+          </div>
+          <div class="signal-board" aria-hidden="true">
+            <div class="signal-row strong">
+              <span>Entrada pela nota</span>
+              <strong>1</strong>
+            </div>
+            <div class="signal-row">
+              <span>Itens identificados</span>
+              <strong>42</strong>
+            </div>
+            <div class="signal-row">
+              <span>Tempo de digitação</span>
+              <strong>-80%</strong>
+            </div>
+            <div class="chart-bars">
+              <i style="height: 42%"></i>
+              <i style="height: 76%"></i>
+              <i style="height: 58%"></i>
+              <i style="height: 92%"></i>
+              <i style="height: 64%"></i>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="pricing-band" id="planos" aria-labelledby="planos-title">
+        <div class="section-heading pricing-heading">
+          <p class="eyebrow">Planos conectados ao checkout Asaas</p>
+          <h2 id="planos-title">Planos para acelerar o recebimento desde o primeiro dia.</h2>
+        </div>
+        <div class="pricing-grid" id="pricing-grid" aria-live="polite"></div>
+      </section>
+
+      <section class="faq-band" id="faq" aria-labelledby="faq-title">
+        <div class="section-heading">
+          <p class="eyebrow">Perguntas rápidas</p>
+          <h2 id="faq-title">O essencial antes de assinar.</h2>
+        </div>
+        <div class="faq-grid">
+          <article>
+            <h3>O pagamento fica no site?</h3>
+            <p>Não. A nossa página cria a conta, pede o checkout ao app e envia o cliente para o ambiente seguro do Asaas.</p>
+          </article>
+          <article>
+            <h3>Preciso criar conta antes?</h3>
+            <p>Sim. O formulário cria ou autentica a conta para você já sair do checkout pronto para registrar entradas.</p>
+          </article>
+          <article>
+            <h3>Quais meios recorrentes?</h3>
+            <p>No checkout recorrente hospedado pelo Asaas, a assinatura mensal e feita por cartao de credito.</p>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <span>LogScan</span>
+      <a href="#planos">Assinar agora</a>
+    </footer>
+
+    <dialog class="checkout-dialog" id="checkout-dialog">
+      <form class="checkout-form" id="checkout-form">
+        <div class="dialog-top">
+          <div>
+            <p class="eyebrow">Checkout seguro</p>
+            <h2 id="dialog-title">Assinar LogScan</h2>
+          </div>
+          <button class="icon-button" type="button" id="close-dialog" aria-label="Fechar">&times;</button>
+        </div>
+
+        <input type="hidden" name="plan" id="selected-plan" value="premium" />
+
+        <label>
+          Nome
+          <input name="name" autocomplete="name" required minlength="3" />
+        </label>
+        <label>
+          E-mail
+          <input name="email" autocomplete="email" type="email" required />
+        </label>
+        <label>
+          Senha para acessar o app
+          <input
+            name="password"
+            autocomplete="new-password"
+            type="password"
+            required
+            minlength="8"
+            pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}"
+            title="Use pelo menos 8 caracteres, com letra maiuscula, letra minuscula e numero."
+          />
+        </label>
+        <label>
+          Empresa
+          <input name="company" autocomplete="organization" />
+        </label>
+        <label>
+          CPF ou CNPJ
+          <input name="cpfCnpj" inputmode="numeric" autocomplete="off" placeholder="000.000.000-00" required />
+        </label>
+        <label>
+          WhatsApp
+          <input name="phoneNumber" autocomplete="tel" inputmode="tel" placeholder="11999999999" required />
+        </label>
+        <label>
+          CEP
+          <input name="postalCode" inputmode="numeric" autocomplete="postal-code" placeholder="29000000" required />
+        </label>
+        <label>
+          Logradouro
+          <input name="address" autocomplete="street-address" placeholder="Rua, avenida, estrada..." required />
+        </label>
+        <label>
+          Numero
+          <input name="addressNumber" autocomplete="address-line2" placeholder="123" required />
+        </label>
+        <label>
+          Bairro
+          <input name="province" autocomplete="address-level3" placeholder="Centro" required />
+        </label>
+
+        <button class="primary-button full" type="submit">
+          Continuar para pagamento
+        </button>
+        <p class="form-message" id="form-message" role="status"></p>
+      </form>
+    </dialog>
+
+    <script src="/app.js" type="module"></script>
+  </body>
+</html>

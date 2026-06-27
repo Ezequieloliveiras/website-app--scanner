@@ -1,0 +1,14 @@
+{
+  "name": "landing-page-logscan",
+  "version": "1.0.0",
+  "description": "Landing page comercial do LogScan conectada ao checkout do backend.",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node server.js",
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

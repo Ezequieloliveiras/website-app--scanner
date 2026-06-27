@@ -1,0 +1,10 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title">
+  <title id="title">LogScan</title>
+  <path d="M384 400.33L419.13 400C435.08 399.84 448 386.92 448 371.13V140.87C448 125.08 435.08 112.16 419.13 112L384 112.33" stroke="#60A5FA" stroke-width="32" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M128 112L91.2 112.33C75.32 112.33 64 125.33 64 141.2V371.47C64 387.34 75.32 400.33 91.2 400.33L128 400" stroke="#60A5FA" stroke-width="32" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M384 192V320" stroke="#60A5FA" stroke-width="32" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M320 160V352" stroke="#60A5FA" stroke-width="32" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M256 176V336" stroke="#60A5FA" stroke-width="32" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M192 160V352" stroke="#60A5FA" stroke-width="32" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M128 192V320" stroke="#60A5FA" stroke-width="32" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
