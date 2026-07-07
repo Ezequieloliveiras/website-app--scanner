@@ -53,7 +53,7 @@ const PLANS = [
     maxManagedUsers: 30,
     highlighted: false,
     contactRequired: false,
-    features: ["Até 30 usuários", "Entrada rápida em escala", "Controle avançado de estoque", "Todos os módulos LogScan"]
+    features: ["Até 30 usuários", "Entrada rápida em escala", "Controle avançado de estoque", "Todos os módulos Bipaai"]
   },
   {
     id: "custom",
@@ -108,7 +108,7 @@ server.on("error", (error) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`Landing LogScan em http://localhost:${PORT}`);
+  console.log(`Landing Bipaai em http://localhost:${PORT}`);
 });
 
 async function createCheckout(payload) {
@@ -118,7 +118,7 @@ async function createCheckout(payload) {
   if (plan.id === "custom") {
     return {
       status: "contact",
-      checkoutUrl: process.env.CUSTOM_PLAN_CONTACT_URL || "mailto:comercial@logscan.app",
+      checkoutUrl: process.env.CUSTOM_PLAN_CONTACT_URL || "mailto:comercial@bipaai.app",
       message: "Vamos direcionar você para o contato comercial."
     };
   }
@@ -129,7 +129,7 @@ async function createCheckout(payload) {
     return {
       status: "free",
       checkoutUrl: APP_WEB_URL,
-      message: "Conta criada. Você já pode acessar o LogScan."
+      message: "Conta criada. Você já pode acessar o Bipaai."
     };
   }
 
@@ -215,7 +215,7 @@ async function requestLogScanCheckout(plan, session, lead) {
   });
 
   if (!result.ok) {
-    throw publicError(result.data?.message || "Não consegui criar o checkout no LogScan.", result.status);
+    throw publicError(result.data?.message || "Não consegui criar o checkout no Bipaai.", result.status);
   }
 
   if (!result.data?.checkoutUrl) {
@@ -238,7 +238,7 @@ async function callBackend(pathname, options) {
     const data = await response.json().catch(() => ({}));
     return { ok: response.ok, status: response.status, data };
   } catch {
-    throw publicError("Não consegui conectar no backend do LogScan.", 502);
+    throw publicError("Não consegui conectar no backend do Bipaai.", 502);
   }
 }
 
