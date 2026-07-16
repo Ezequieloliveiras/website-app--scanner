@@ -252,7 +252,8 @@ function contentType(filePath) {
       ".js": "application/javascript; charset=utf-8",
       ".png": "image/png",
       ".jpg": "image/jpeg",
-      ".svg": "image/svg+xml"
+      ".svg": "image/svg+xml",
+      ".woff2": "font/woff2"
     }[ext] || "application/octet-stream"
   );
 }
@@ -322,9 +323,9 @@ function setSecurityHeaders(response) {
     [
       "default-src 'self'",
       "script-src 'self'",
-      "style-src 'self' 'unsafe-inline'",
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "img-src 'self' data:",
-      "font-src 'self'",
+      "font-src 'self' https://fonts.gstatic.com",
       "connect-src 'self'",
       "form-action 'self'",
       "base-uri 'self'",
