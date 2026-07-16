@@ -20,11 +20,10 @@
         <p class="eyebrow" id="result-eyebrow">Checkout</p>
         <h1 id="result-title">Estamos conferindo seu pagamento.</h1>
         <p id="result-copy">
-          Acompanhe pelo app a liberacao do seu plano. Assim que o Asaas confirmar o pagamento, o acesso sera atualizado automaticamente.
+          Volte para o seu app e aproveite.
         </p>
         <div class="result-actions">
-          <a class="primary-button" id="open-app-link" href="appscanner://billing/success">Abrir app</a>
-          <a class="primary-button ghost-action" href="/">Voltar para a landing</a>
+          <a class="primary-button ghost-action" href="/">Voltar para o site</a>
         </div>
       </section>
     </main>
@@ -35,7 +34,7 @@
         success: {
           eyebrow: "Pagamento enviado",
           title: "Tudo certo por aqui.",
-          copy: "Abra o app e acompanhe por la a liberacao do seu plano. O Asaas vai avisar o Bipaai pelo webhook e, depois da confirmação do pagamento, o acesso sera atualizado automaticamente."
+          copy: "Volte para o seu app e aproveite."
         },
         cancel: {
           eyebrow: "Checkout cancelado",
@@ -45,7 +44,7 @@
         expired: {
           eyebrow: "Checkout expirado",
           title: "Esse link expirou.",
-          copy: "Volte para a landing e gere um novo checkout para continuar."
+          copy: "Volte para o site e gere um novo checkout para continuar."
         }
       };
 
@@ -53,16 +52,6 @@
       document.querySelector("#result-eyebrow").textContent = selected.eyebrow;
       document.querySelector("#result-title").textContent = selected.title;
       document.querySelector("#result-copy").textContent = selected.copy;
-
-      const appUrl = `appscanner://billing/${state || "success"}${location.search || ""}`;
-      const openAppLink = document.querySelector("#open-app-link");
-      openAppLink.href = appUrl;
-
-      if (state === "success") {
-        window.setTimeout(() => {
-          location.href = appUrl;
-        }, 700);
-      }
     </script>
   </body>
 </html>
