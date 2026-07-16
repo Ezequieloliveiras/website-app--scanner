@@ -13,9 +13,22 @@ const PORT = Number(process.env.PORT || 5175);
 const APP_BACKEND_URL = trimTrailingSlash(process.env.APP_BACKEND_URL || "http://localhost:3333");
 const APP_WEB_URL = process.env.APP_WEB_URL;
 const CHECKOUT_RESULT_ROUTES = new Set(["/billing/success", "/billing/cancel", "/billing/expired"]);
+const BACKEND_TIMEOUT_MS = Number(process.env.BACKEND_TIMEOUT_MS || 10000);
+const GLOBAL_RATE_LIMIT_MAX = Number(process.env.LANDING_RATE_LIMIT_MAX_PER_MINUTE || 120);
+const CHECKOUT_RATE_LIMIT_MAX = Number(process.env.LANDING_CHECKOUT_RATE_LIMIT_MAX || 8);
+const CHECKOUT_RATE_LIMIT_WINDOW_MS = Number(process.env.LANDING_CHECKOUT_RATE_LIMIT_WINDOW_MS || 15 * 60 * 1000);
+const rateLimitBuckets = new Map();
+let lastRateLimitCleanupAt = Date.now();
 
 const server = createServer(async (request, response) => {
   try {
+    setSecurityHeaders(response);
+    enforceRateLimit(request, response, {
+      keyPrefix: "global",
+      max: GLOBAL_RATE_LIMIT_MAX,
+      windowMs: 60 * 1000
+    });
+
     const url = new URL(request.url || "/", `http://${request.headers.host || "localhost"}`);
 
     if (request.method === "GET" && url.pathname === "/api/plans") {
@@ -23,6 +36,11 @@ const server = createServer(async (request, response) => {
     }
 
     if (request.method === "POST" && url.pathname === "/api/checkout") {
+      enforceRateLimit(request, response, {
+        keyPrefix: "checkout",
+        max: CHECKOUT_RATE_LIMIT_MAX,
+        windowMs: CHECKOUT_RATE_LIMIT_WINDOW_MS
+      });
       const payload = await readJson(request);
       const result = await createCheckout(payload, request);
       return sendJson(response, 200, result);
@@ -55,7 +73,7 @@ server.on("error", (error) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`Landing Bipaai em http://localhost:${PORT}`);
+  console.log(`Landing BipaAí em http://localhost:${PORT}`);
 });
 
 async function createCheckout(payload, request) {
@@ -76,13 +94,13 @@ async function createCheckout(payload, request) {
   const isFreePlan = plan.id === "free";
 
   if (!checkout.checkoutUrl && !isFreePlan) {
-    throw publicError("Nao consegui gerar o checkout do Asaas. Confira o valor do plano e as chaves ASAAS no backend.", 502);
+    throw publicError("Não consegui gerar o checkout do Asaas. Confira o valor do plano e as chaves ASAAS no backend.", 502);
   }
 
   return {
     status: checkout.status || "pending",
     checkoutUrl: checkout.checkoutUrl || getSuccessUrl(request, plan.id),
-    message: checkout.message || "Conta criada. Voce ja pode acessar o Bipaai."
+    message: checkout.message || "Conta criada. Você já pode acessar o BipaAí."
   };
 }
 
@@ -101,13 +119,13 @@ function normalizeLead(payload) {
   if (!name || name.length < 3) throw publicError("Informe seu nome.", 400);
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw publicError("Informe um e-mail válido.", 400);
   if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}/.test(password)) {
-    throw publicError("A senha precisa ter pelo menos 8 caracteres, com maiuscula, minuscula e numero.", 400);
+    throw publicError("A senha precisa ter pelo menos 8 caracteres, com maiúscula, minúscula e número.", 400);
   }
   if (![11, 14].includes(cpfCnpj.length)) throw publicError("Informe um CPF ou CNPJ válido.", 400);
   if (phoneNumber.length < 10 || phoneNumber.length > 11) throw publicError("Informe um WhatsApp com DDD válido.", 400);
   if (postalCode.length !== 8) throw publicError("Informe um CEP válido.", 400);
   if (!address) throw publicError("Informe o logradouro.", 400);
-  if (!addressNumber) throw publicError("Informe o numero do endereco.", 400);
+  if (!addressNumber) throw publicError("Informe o número do endereço.", 400);
   if (!province) throw publicError("Informe o bairro.", 400);
 
   return { name, email, password, company, cpfCnpj, phoneNumber, postalCode, address, addressNumber, province };
@@ -159,16 +177,20 @@ async function requestLogScanCheckout(plan, session, lead) {
   });
 
   if (!result.ok) {
-    throw publicError(result.data?.message || "Não consegui criar o checkout no Bipaai.", result.status);
+    throw publicError(result.data?.message || "Não consegui criar o checkout no BipaAí.", result.status);
   }
 
   return result.data;
 }
 
 async function callBackend(pathname, options) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), BACKEND_TIMEOUT_MS);
+
   try {
     const requestOptions = {
       method: options.method,
+      signal: controller.signal,
       headers: {
         "Content-Type": "application/json",
         ...(options.token ? { Authorization: `Bearer ${options.token}` } : {})
@@ -185,7 +207,9 @@ async function callBackend(pathname, options) {
     const data = await response.json().catch(() => ({}));
     return { ok: response.ok, status: response.status, data };
   } catch {
-    throw publicError("Não consegui conectar no backend do Bipaai.", 502);
+    throw publicError("Não consegui conectar no backend do BipaAí.", 502);
+  } finally {
+    clearTimeout(timeout);
   }
 }
 
@@ -193,7 +217,7 @@ async function listPlans() {
   const result = await callBackend("/api/billing/plans", { method: "GET" });
 
   if (!result.ok || !Array.isArray(result.data)) {
-    throw publicError(result.data?.message || "Nao consegui carregar os planos no backend.", result.status || 502);
+    throw publicError(result.data?.message || "Não consegui carregar os planos no backend.", result.status || 502);
   }
 
   return result.data;
@@ -210,7 +234,7 @@ async function serveStatic(requestPath, response) {
   const safePath = requestPath === "/" ? "/index.html" : decodeURIComponent(requestPath);
   const filePath = path.normalize(path.join(publicDir, safePath));
 
-  if (!filePath.startsWith(publicDir) || !existsSync(filePath)) {
+  if ((!filePath.startsWith(`${publicDir}${path.sep}`) && filePath !== publicDir) || !existsSync(filePath)) {
     return sendJson(response, 404, { message: "Arquivo não encontrado." });
   }
 
@@ -263,7 +287,9 @@ function getSuccessUrl(request, planId) {
   if (APP_WEB_URL && !isLocalUrl(APP_WEB_URL)) {
     return APP_WEB_URL;
   }
-
+  if (process.env.NODE_ENV === "production") {
+    throw publicError("Configure APP_WEB_URL com a URL pública da landing em produção.", 500);
+  }
   const host = request.headers["x-forwarded-host"] || request.headers.host || `localhost:${PORT}`;
   const proto = request.headers["x-forwarded-proto"] || (String(host).includes("localhost") ? "http" : "https");
   return `${String(proto).split(",")[0]}://${String(host).split(",")[0]}/billing/success?plan=${encodeURIComponent(planId)}`;
@@ -283,6 +309,80 @@ function publicError(message, statusCode = 500) {
   error.publicMessage = message;
   error.statusCode = statusCode;
   return error;
+}
+
+function setSecurityHeaders(response) {
+  response.setHeader("X-Content-Type-Options", "nosniff");
+  response.setHeader("X-Frame-Options", "DENY");
+  response.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+  response.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+  response.setHeader("Cross-Origin-Resource-Policy", "same-origin");
+  response.setHeader(
+    "Content-Security-Policy",
+    [
+      "default-src 'self'",
+      "script-src 'self'",
+      "style-src 'self' 'unsafe-inline'",
+      "img-src 'self' data:",
+      "font-src 'self'",
+      "connect-src 'self'",
+      "form-action 'self'",
+      "base-uri 'self'",
+      "frame-ancestors 'none'",
+      "object-src 'none'"
+    ].join("; ")
+  );
+
+  if (process.env.NODE_ENV === "production") {
+    response.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
+  }
+}
+
+function enforceRateLimit(request, response, options) {
+  const now = Date.now();
+  cleanupRateLimits(now);
+
+  const key = `${options.keyPrefix}:${getClientIp(request)}`;
+  const bucket = rateLimitBuckets.get(key);
+
+  if (!bucket || bucket.resetAt <= now) {
+    rateLimitBuckets.set(key, { count: 1, resetAt: now + options.windowMs });
+    response.setHeader("RateLimit-Limit", String(options.max));
+    response.setHeader("RateLimit-Remaining", String(Math.max(options.max - 1, 0)));
+    return;
+  }
+
+  bucket.count += 1;
+  response.setHeader("RateLimit-Limit", String(options.max));
+  response.setHeader("RateLimit-Remaining", String(Math.max(options.max - bucket.count, 0)));
+  response.setHeader("RateLimit-Reset", String(Math.ceil(bucket.resetAt / 1000)));
+
+  if (bucket.count > options.max) {
+    throw publicError("Muitas requisições. Tente novamente em instantes.", 429);
+  }
+}
+
+function getClientIp(request) {
+  const cfIp = request.headers["cf-connecting-ip"];
+  if (typeof cfIp === "string" && cfIp) return cfIp;
+
+  const forwardedFor = request.headers["x-forwarded-for"];
+  if (typeof forwardedFor === "string" && forwardedFor) {
+    return forwardedFor.split(",")[0].trim();
+  }
+
+  return request.socket.remoteAddress || "unknown";
+}
+
+function cleanupRateLimits(now) {
+  if (now - lastRateLimitCleanupAt < 60000) return;
+  lastRateLimitCleanupAt = now;
+
+  for (const [key, bucket] of rateLimitBuckets) {
+    if (bucket.resetAt <= now) {
+      rateLimitBuckets.delete(key);
+    }
+  }
 }
 
 function trimTrailingSlash(value) {
@@ -308,4 +408,6 @@ function loadEnv() {
 function awaitableReadEnv(envPath) {
   return existsSync(envPath) ? readFileSync(envPath, "utf8") : "";
 }
+
+
 
