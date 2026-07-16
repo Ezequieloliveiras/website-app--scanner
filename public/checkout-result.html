@@ -22,7 +22,8 @@
           Acompanhe pelo app a liberacao do seu plano. Assim que o Asaas confirmar o pagamento, o acesso sera atualizado automaticamente.
         </p>
         <div class="result-actions">
-          <a class="primary-button" href="/">Voltar para a landing</a>
+          <a class="primary-button" id="open-app-link" href="appscanner://billing/success">Abrir app</a>
+          <a class="primary-button ghost-action" href="/">Voltar para a landing</a>
         </div>
       </section>
     </main>
@@ -51,6 +52,16 @@
       document.querySelector("#result-eyebrow").textContent = selected.eyebrow;
       document.querySelector("#result-title").textContent = selected.title;
       document.querySelector("#result-copy").textContent = selected.copy;
+
+      const appUrl = `appscanner://billing/${state || "success"}${location.search || ""}`;
+      const openAppLink = document.querySelector("#open-app-link");
+      openAppLink.href = appUrl;
+
+      if (state === "success") {
+        window.setTimeout(() => {
+          location.href = appUrl;
+        }, 700);
+      }
     </script>
   </body>
 </html>

@@ -14,65 +14,12 @@ const APP_BACKEND_URL = trimTrailingSlash(process.env.APP_BACKEND_URL || "http:/
 const APP_WEB_URL = process.env.APP_WEB_URL || "http://localhost:5175/billing/success?plan=free";
 const CHECKOUT_RESULT_ROUTES = new Set(["/billing/success", "/billing/cancel", "/billing/expired"]);
 
-const PLANS = [
-  {
-    id: "free",
-    label: "Free",
-    description: "Para testar entrada de estoque pela nota.",
-    monthlyPriceCents: 0,
-    maxManagedUsers: 0,
-    highlighted: false,
-    contactRequired: false,
-    features: ["Entrada pela leitura da nota", "Dashboard de estoque", "Produtos e estoque central", "Sem usuários adicionais"]
-  },
-  {
-    id: "basic",
-    label: "Basic",
-    description: "Para registrar entradas rápidas com uma equipe enxuta.",
-    monthlyPriceCents: 4900,
-    maxManagedUsers: 3,
-    highlighted: false,
-    contactRequired: false,
-    features: ["Até 3 usuários", "Entrada de estoque em segundos", "Produtos e estoque central", "Acesso para equipe"]
-  },
-  {
-    id: "premium",
-    label: "Premium",
-    description: "Para acelerar entradas, filiais e solicitações internas.",
-    monthlyPriceCents: 9900,
-    maxManagedUsers: 10,
-    highlighted: true,
-    contactRequired: false,
-    features: ["Até 10 usuários", "Entrada rápida pela nota", "Filiais e movimentações", "Solicitações de retirada"]
-  },
-  {
-    id: "pro",
-    label: "Pro",
-    description: "Para operações maiores que precisam receber mercadoria sem gargalo.",
-    monthlyPriceCents: 19900,
-    maxManagedUsers: 30,
-    highlighted: false,
-    contactRequired: false,
-    features: ["Até 30 usuários", "Entrada rápida em escala", "Controle avançado de estoque", "Todos os módulos Bipaai"]
-  },
-  {
-    id: "custom",
-    label: "Personalizado",
-    description: "Para redes com limites, suporte e condições comerciais sob medida.",
-    monthlyPriceCents: null,
-    maxManagedUsers: null,
-    highlighted: false,
-    contactRequired: true,
-    features: ["Usuários sob contrato", "Suporte consultivo", "Condições comerciais sob medida", "Implantação acompanhada"]
-  }
-];
-
 const server = createServer(async (request, response) => {
   try {
     const url = new URL(request.url || "/", `http://${request.headers.host || "localhost"}`);
 
     if (request.method === "GET" && url.pathname === "/api/plans") {
-      return sendJson(response, 200, PLANS);
+      return sendJson(response, 200, await listPlans());
     }
 
     if (request.method === "POST" && url.pathname === "/api/checkout") {
@@ -112,7 +59,7 @@ server.listen(PORT, () => {
 });
 
 async function createCheckout(payload) {
-  const plan = getPlan(payload.plan);
+  const plan = await getPlan(payload.plan);
   const lead = normalizeLead(payload);
 
   if (plan.id === "custom") {
@@ -227,13 +174,20 @@ async function requestLogScanCheckout(plan, session, lead) {
 
 async function callBackend(pathname, options) {
   try {
-    const response = await fetch(`${APP_BACKEND_URL}${pathname}`, {
+    const requestOptions = {
       method: options.method,
       headers: {
         "Content-Type": "application/json",
         ...(options.token ? { Authorization: `Bearer ${options.token}` } : {})
-      },
-      body: JSON.stringify(options.body)
+      }
+    };
+
+    if (options.body !== undefined) {
+      requestOptions.body = JSON.stringify(options.body);
+    }
+
+    const response = await fetch(`${APP_BACKEND_URL}${pathname}`, {
+      ...requestOptions
     });
     const data = await response.json().catch(() => ({}));
     return { ok: response.ok, status: response.status, data };
@@ -242,8 +196,19 @@ async function callBackend(pathname, options) {
   }
 }
 
-function getPlan(planId) {
-  const plan = PLANS.find((item) => item.id === String(planId || "").trim());
+async function listPlans() {
+  const result = await callBackend("/api/billing/plans", { method: "GET" });
+
+  if (!result.ok || !Array.isArray(result.data)) {
+    throw publicError(result.data?.message || "Nao consegui carregar os planos no backend.", result.status || 502);
+  }
+
+  return result.data;
+}
+
+async function getPlan(planId) {
+  const plans = await listPlans();
+  const plan = plans.find((item) => item.id === String(planId || "").trim());
   if (!plan) throw publicError("Plano inválido.", 400);
   return plan;
 }

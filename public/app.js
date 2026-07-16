@@ -1,11 +1,3 @@
-const plansFallback = [
-  { id: "free", label: "Free", description: "Para testar entrada de estoque pela nota.", monthlyPriceCents: 0, features: [] },
-  { id: "basic", label: "Basic", description: "Para registrar entradas rápidas com uma equipe enxuta.", monthlyPriceCents: 4900, features: [] },
-  { id: "premium", label: "Premium", description: "Para acelerar entradas, filiais e solicitações internas.", monthlyPriceCents: 9900, highlighted: true, features: [] },
-  { id: "pro", label: "Pro", description: "Para operações maiores.", monthlyPriceCents: 19900, features: [] },
-  { id: "custom", label: "Personalizado", description: "Para redes com condições sob medida.", monthlyPriceCents: null, contactRequired: true, features: [] }
-];
-
 const pricingGrid = document.querySelector("#pricing-grid");
 const dialog = document.querySelector("#checkout-dialog");
 const form = document.querySelector("#checkout-form");
@@ -14,25 +6,30 @@ const dialogTitle = document.querySelector("#dialog-title");
 const formMessage = document.querySelector("#form-message");
 const closeDialog = document.querySelector("#close-dialog");
 
-let plans = plansFallback;
+let plans = [];
 
 init();
 
 async function init() {
-  plans = await loadPlans();
-  renderPlans(plans);
+  try {
+    plans = await loadPlans();
+    renderPlans(plans);
+  } catch (error) {
+    renderPlansError(error.message || "Nao consegui carregar os planos.");
+  }
   bindOpenButtons();
   bindDialog();
 }
 
 async function loadPlans() {
-  try {
-    const response = await fetch("/api/plans");
-    if (!response.ok) return plansFallback;
-    return await response.json();
-  } catch {
-    return plansFallback;
+  const response = await fetch("/api/plans");
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok || !Array.isArray(data)) {
+    throw new Error(data.message || "Nao consegui carregar os planos.");
   }
+
+  return data;
 }
 
 function renderPlans(items) {
@@ -42,7 +39,7 @@ function renderPlans(items) {
       const actionLabel = plan.id === "custom" ? "Falar com comercial" : plan.id === "free" ? "Criar conta grátis" : `Assinar ${plan.label}`;
       const buttonClass = plan.highlighted ? "primary-button" : "ghost-action";
       const features = (plan.features || [])
-        .map((feature) => `<li><span class="check" aria-hidden="true">&#10003;</span><span>${escapeHtml(feature)}</span></li>`)
+        .map((feature) => `<li><span class="check" aria-hidden="true">&#10003;</span><span>${escapeHtml(feature.label || feature)}</span></li>`)
         .join("");
 
       return `
@@ -64,6 +61,17 @@ function renderPlans(items) {
       `;
     })
     .join("");
+}
+
+function renderPlansError(message) {
+  pricingGrid.innerHTML = `
+    <article class="price-card highlighted">
+      <div class="price-title">
+        <h3>Planos indisponiveis</h3>
+      </div>
+      <p>${escapeHtml(message)}</p>
+    </article>
+  `;
 }
 
 function bindOpenButtons() {
