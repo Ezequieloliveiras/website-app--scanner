@@ -36,7 +36,7 @@ function renderPlans(items) {
   pricingGrid.innerHTML = items
     .map((plan) => {
       const price = formatPrice(plan.monthlyPriceCents);
-      const actionLabel = plan.id === "custom" ? "Falar com comercial" : plan.id === "free" ? "Criar conta grátis" : `Assinar ${plan.label}`;
+      const actionLabel = plan.id === "custom" ? "Falar com comercial" : (plan.monthlyPriceCents || 0) <= 0 ? `Comecar ${plan.label}` : `Assinar ${plan.label}`;
       const buttonClass = plan.highlighted ? "primary-button" : "ghost-action";
       const features = (plan.features || [])
         .map((feature) => `<li><span class="check" aria-hidden="true">&#10003;</span><span>${escapeHtml(feature.label || feature)}</span></li>`)
@@ -91,7 +91,7 @@ function bindDialog() {
 function openCheckout(planId) {
   const plan = plans.find((item) => item.id === planId) || plans.find((item) => item.id === "premium");
   selectedPlanInput.value = plan.id;
-  dialogTitle.textContent = plan.id === "custom" ? "Solicitar plano personalizado" : `Assinar ${plan.label}`;
+  dialogTitle.textContent = plan.id === "custom" ? "Solicitar plano personalizado" : (plan.monthlyPriceCents || 0) <= 0 ? `Criar conta ${plan.label}` : `Assinar ${plan.label}`;
   formMessage.textContent = "";
   formMessage.classList.remove("error");
   dialog.showModal();
@@ -101,8 +101,10 @@ async function submitCheckout(event) {
   event.preventDefault();
   const payload = Object.fromEntries(new FormData(form).entries());
   payload.plan = payload.plan || selectedPlanInput.value;
+  const plan = plans.find((item) => item.id === payload.plan);
+  const needsCheckout = plan?.id === "custom" || (plan?.monthlyPriceCents || 0) > 0;
 
-  setLoading(true, "Criando checkout...");
+  setLoading(true, needsCheckout ? "Criando checkout..." : "Criando conta...");
 
   try {
     const response = await fetch("/api/checkout", {
@@ -113,9 +115,9 @@ async function submitCheckout(event) {
     const data = await response.json().catch(() => ({}));
 
     if (!response.ok) throw new Error(data.message || "Não consegui criar o checkout.");
-    if (!data.checkoutUrl) throw new Error(data.message || "Checkout criado sem URL.");
+    if (!data.checkoutUrl) throw new Error(data.message || "Nao consegui concluir sua conta.");
 
-    setLoading(false, "Tudo certo. Abrindo checkout...");
+    setLoading(false, needsCheckout ? "Tudo certo. Abrindo checkout..." : "Conta criada. Redirecionando...");
     window.location.href = data.checkoutUrl;
   } catch (error) {
     setLoading(false, error.message, true);
@@ -151,3 +153,4 @@ function escapeHtml(value) {
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
 }
+

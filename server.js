@@ -11,7 +11,7 @@ loadEnv();
 
 const PORT = Number(process.env.PORT || 5175);
 const APP_BACKEND_URL = trimTrailingSlash(process.env.APP_BACKEND_URL || "http://localhost:3333");
-const APP_WEB_URL = process.env.APP_WEB_URL || "http://localhost:5175/billing/success?plan=free";
+const APP_WEB_URL = process.env.APP_WEB_URL || "http://localhost:5175/billing/success?plan=basic";
 const CHECKOUT_RESULT_ROUTES = new Set(["/billing/success", "/billing/cancel", "/billing/expired"]);
 
 const server = createServer(async (request, response) => {
@@ -72,20 +72,12 @@ async function createCheckout(payload) {
 
   const session = await createOrLoginLogScanUser(lead);
 
-  if (plan.id === "free") {
-    return {
-      status: "free",
-      checkoutUrl: APP_WEB_URL,
-      message: "Conta criada. Você já pode acessar o Bipaai."
-    };
-  }
-
   const checkout = await requestLogScanCheckout(plan, session, lead);
 
   return {
     status: checkout.status || "pending",
-    checkoutUrl: checkout.checkoutUrl,
-    message: checkout.message || "Checkout de assinatura criado com sucesso."
+    checkoutUrl: checkout.checkoutUrl || APP_WEB_URL,
+    message: checkout.message || "Conta criada. Voce ja pode acessar o Bipaai."
   };
 }
 
@@ -163,10 +155,6 @@ async function requestLogScanCheckout(plan, session, lead) {
 
   if (!result.ok) {
     throw publicError(result.data?.message || "Não consegui criar o checkout no Bipaai.", result.status);
-  }
-
-  if (!result.data?.checkoutUrl) {
-    throw publicError(result.data?.message || "Checkout criado sem URL.", 502);
   }
 
   return result.data;
@@ -296,3 +284,4 @@ function loadEnv() {
 function awaitableReadEnv(envPath) {
   return existsSync(envPath) ? readFileSync(envPath, "utf8") : "";
 }
+
