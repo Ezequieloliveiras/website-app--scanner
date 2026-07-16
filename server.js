@@ -11,7 +11,7 @@ loadEnv();
 
 const PORT = Number(process.env.PORT || 5175);
 const APP_BACKEND_URL = trimTrailingSlash(process.env.APP_BACKEND_URL || "http://localhost:3333");
-const APP_WEB_URL = process.env.APP_WEB_URL || "http://localhost:5175/billing/success?plan=free";
+const APP_WEB_URL = process.env.APP_WEB_URL;
 const CHECKOUT_RESULT_ROUTES = new Set(["/billing/success", "/billing/cancel", "/billing/expired"]);
 
 const server = createServer(async (request, response) => {
@@ -24,7 +24,7 @@ const server = createServer(async (request, response) => {
 
     if (request.method === "POST" && url.pathname === "/api/checkout") {
       const payload = await readJson(request);
-      const result = await createCheckout(payload);
+      const result = await createCheckout(payload, request);
       return sendJson(response, 200, result);
     }
 
@@ -58,7 +58,7 @@ server.listen(PORT, () => {
   console.log(`Landing Bipaai em http://localhost:${PORT}`);
 });
 
-async function createCheckout(payload) {
+async function createCheckout(payload, request) {
   const plan = await getPlan(payload.plan);
   const lead = normalizeLead(payload);
 
@@ -73,10 +73,15 @@ async function createCheckout(payload) {
   const session = await createOrLoginLogScanUser(lead);
 
   const checkout = await requestLogScanCheckout(plan, session, lead);
+  const isFreePlan = plan.id === "free";
+
+  if (!checkout.checkoutUrl && !isFreePlan) {
+    throw publicError("Nao consegui gerar o checkout do Asaas. Confira o valor do plano e as chaves ASAAS no backend.", 502);
+  }
 
   return {
     status: checkout.status || "pending",
-    checkoutUrl: checkout.checkoutUrl || APP_WEB_URL,
+    checkoutUrl: checkout.checkoutUrl || getSuccessUrl(request, plan.id),
     message: checkout.message || "Conta criada. Voce ja pode acessar o Bipaai."
   };
 }
@@ -252,6 +257,25 @@ function readJson(request) {
 function sendJson(response, statusCode, data) {
   response.writeHead(statusCode, { "Content-Type": "application/json; charset=utf-8" });
   response.end(JSON.stringify(data));
+}
+
+function getSuccessUrl(request, planId) {
+  if (APP_WEB_URL && !isLocalUrl(APP_WEB_URL)) {
+    return APP_WEB_URL;
+  }
+
+  const host = request.headers["x-forwarded-host"] || request.headers.host || `localhost:${PORT}`;
+  const proto = request.headers["x-forwarded-proto"] || (String(host).includes("localhost") ? "http" : "https");
+  return `${String(proto).split(",")[0]}://${String(host).split(",")[0]}/billing/success?plan=${encodeURIComponent(planId)}`;
+}
+
+function isLocalUrl(value) {
+  try {
+    const url = new URL(value);
+    return url.hostname === "localhost" || url.hostname === "127.0.0.1" || url.hostname === "::1";
+  } catch {
+    return false;
+  }
 }
 
 function publicError(message, statusCode = 500) {

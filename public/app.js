@@ -36,7 +36,7 @@ function renderPlans(items) {
   pricingGrid.innerHTML = items
     .map((plan) => {
       const price = formatPrice(plan.monthlyPriceCents);
-      const actionLabel = plan.id === "custom" ? "Falar com comercial" : (plan.monthlyPriceCents || 0) <= 0 ? `Começar ${plan.label}` : `Assinar ${plan.label}`;
+      const actionLabel = plan.id === "custom" ? "Falar com comercial" : plan.id === "free" ? `Começar ${plan.label}` : `Assinar ${plan.label}`;
       const buttonClass = plan.highlighted ? "primary-button" : "ghost-action";
       const features = (plan.features || [])
         .map((feature) => `<li><span class="check" aria-hidden="true">&#10003;</span><span>${escapeHtml(feature.label || feature)}</span></li>`)
@@ -91,7 +91,7 @@ function bindDialog() {
 function openCheckout(planId) {
   const plan = plans.find((item) => item.id === planId) || plans.find((item) => item.id === "premium");
   selectedPlanInput.value = plan.id;
-  dialogTitle.textContent = plan.id === "custom" ? "Solicitar plano personalizado" : (plan.monthlyPriceCents || 0) <= 0 ? `Criar conta ${plan.label}` : `Assinar ${plan.label}`;
+  dialogTitle.textContent = plan.id === "custom" ? "Solicitar plano personalizado" : plan.id === "free" ? `Criar conta ${plan.label}` : `Assinar ${plan.label}`;
   formMessage.textContent = "";
   formMessage.classList.remove("error");
   dialog.showModal();
@@ -102,7 +102,7 @@ async function submitCheckout(event) {
   const payload = Object.fromEntries(new FormData(form).entries());
   payload.plan = payload.plan || selectedPlanInput.value;
   const plan = plans.find((item) => item.id === payload.plan);
-  const needsCheckout = plan?.id === "custom" || (plan?.monthlyPriceCents || 0) > 0;
+  const needsCheckout = plan?.id === "custom" || plan?.id !== "free";
 
   setLoading(true, needsCheckout ? "Criando checkout..." : "Criando conta...");
 
@@ -153,4 +153,3 @@ function escapeHtml(value) {
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
 }
-
