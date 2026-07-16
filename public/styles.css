@@ -386,6 +386,12 @@ h3 {
   line-height: 1.55;
 }
 
+.workflow-grid h3,
+.faq-grid h3,
+.price-card h3 {
+  font-family: var(--font-muted);
+}
+
 .step-icon {
   display: inline-grid;
   width: 42px;
@@ -507,7 +513,7 @@ h3 {
 }
 
 .price strong {
-  font-family: var(--font-display);
+  font-family: var(--font-muted);
   font-size: 2rem;
   line-height: 1;
 }
@@ -555,6 +561,7 @@ h3 {
   border-radius: 8px;
   color: var(--teal);
   background: var(--white);
+  font-family: var(--font-muted);
   font-weight: 800;
   cursor: pointer;
 }
@@ -776,6 +783,7 @@ body.checkout-open {
 
 .checkout-grid {
   display: grid;
+  align-items: start;
   gap: 16px;
 }
 
@@ -800,12 +808,17 @@ body.checkout-open {
   border-radius: 10px;
   padding: 0 13px;
   color: var(--ink);
+  font-family: var(--font-muted);
   background: #fbfdff;
-  font-weight: 400;
+  font-weight: 400 !important;
   transition:
     border-color 150ms ease,
     box-shadow 150ms ease,
     background 150ms ease;
+}
+
+.checkout-field input::placeholder {
+  font-weight: 400;
 }
 
 .checkout-field input:focus {
@@ -824,7 +837,7 @@ body.checkout-open {
   color: var(--muted);
   font-family: var(--font-muted);
   font-size: 0.78rem;
-  font-weight: 600;
+  font-weight: 400;
 }
 
 .field-error {
