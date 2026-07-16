@@ -11,7 +11,7 @@ loadEnv();
 
 const PORT = Number(process.env.PORT || 5175);
 const APP_BACKEND_URL = trimTrailingSlash(process.env.APP_BACKEND_URL || "http://localhost:3333");
-const APP_WEB_URL = process.env.APP_WEB_URL || "http://localhost:5175/billing/success?plan=basic";
+const APP_WEB_URL = process.env.APP_WEB_URL || "http://localhost:5175/billing/success?plan=free";
 const CHECKOUT_RESULT_ROUTES = new Set(["/billing/success", "/billing/cancel", "/billing/expired"]);
 
 const server = createServer(async (request, response) => {

@@ -36,7 +36,7 @@ function renderPlans(items) {
   pricingGrid.innerHTML = items
     .map((plan) => {
       const price = formatPrice(plan.monthlyPriceCents);
-      const actionLabel = plan.id === "custom" ? "Falar com comercial" : (plan.monthlyPriceCents || 0) <= 0 ? `Comecar ${plan.label}` : `Assinar ${plan.label}`;
+      const actionLabel = plan.id === "custom" ? "Falar com comercial" : (plan.monthlyPriceCents || 0) <= 0 ? `Começar ${plan.label}` : `Assinar ${plan.label}`;
       const buttonClass = plan.highlighted ? "primary-button" : "ghost-action";
       const features = (plan.features || [])
         .map((feature) => `<li><span class="check" aria-hidden="true">&#10003;</span><span>${escapeHtml(feature.label || feature)}</span></li>`)
